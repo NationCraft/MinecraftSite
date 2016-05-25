@@ -3,9 +3,6 @@ import minecraftstats as mc
 from pymongo import MongoClient
 
 app = Flask(__name__)
-client = MongoClient('localhost', 27017)
-db = client.minecraft_logger
-db_log = db.session_log
 
 
 @app.route('/')
@@ -25,27 +22,81 @@ def main():
 
 @app.route('/player_log/')
 @app.route('/player_log/<playername>')
-def player_log(playername=None):
+@app.route('/player_log/<playername>/<servername>')
+def player_log(playername=None, servername=None):
+    # col_data = player_log.get_mongo_collection('localhost', 27017, 'minecraft_logger', 'session_log')
+    player_list, server_list = get_player_server_list(get_mongo_collection(get_mongo_client()))
+    player_selected = playername
+    server_selected = servername
+    player_data = None
+
+    if playername is not None and servername is not None:
+        print("running player log")
+        player_data = get_player_log(playername, servername)
+
+    return render_template('player_log.html',
+                           player_list=player_list,
+                           server_list=server_list,
+                           player_selected=player_selected,
+                           server_selected=server_selected,
+                           player_data=player_data)
+
+
+# get_player_log functions *******************************************************
+def get_mongo_client():
+    client = MongoClient('localhost', 27017)
+    db = client.minecraft_logger
+    return db.session_log
+
+
+def get_mongo_collection(mongo_client):
+    data_log = mongo_client.find()
+    return data_log
+
+
+def get_mongo_all_servers(mongo_client, player):
+    print('all servers', player)
+    return mongo_client.find({'username': player})
+
+
+def get_mongo_all_players(mongo_client, server):
+    print('all players', server)
+    return mongo_client.find({'server': server})
+
+
+def get_mongo_all_args(mongo_client, player, server):
+    print('all args', player, server)
+    return mongo_client.find({'username': player, 'server': server})
+
+
+# returns list[[][]]
+def get_player_server_list(col_data):
+    # col_data = get_mongo_collection(host='localhost', port=27017, db='minecraft_logger', collection='session_log')
     player_list = []
     server_list = []
-    player_selected = playername
-    server_selected = None
-    log_data = db_log.find()
-    for i in log_data:
+    # multi_list = []
+    for i in col_data:
         if not i['username'] in player_list:
             player_list.append(i['username'])
         if not i['server'] in server_list:
             server_list.append(i['server'])
-    return render_template('player_log.html',
-                           player_list=player_list,
-                           server_list=server_list,
-                           player_selected=player_selected)
+    # multi_list.append(player_list)
+    # multi_list.append(server_list)
+    return player_list, server_list
 
-'''
-@app.route('/player_log/<playername>')
-def player_log(playername):
-    render_template('player_log.html')
-'''
+
+def get_player_log(playername, servername):
+    if playername == "AllPlayers":
+        if servername == 'AllServers':
+            return get_mongo_collection(get_mongo_client())
+        else:
+            return get_mongo_all_players(get_mongo_client(), servername)
+    else:
+        if servername == 'AllServers':
+            return get_mongo_all_servers(get_mongo_client(), playername)
+        else:
+            return get_mongo_all_args(get_mongo_client(), playername, servername)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -2,6 +2,38 @@
 
 {% block logbody %}
 
-Hello World
+<div class="panel panel-default" style="margin-top:20px;">
+    <!-- Default panel contents -->
+    <div class="panel-heading">Panel heading</div>
+
+    <!-- Table -->
+    <table class="table table-striped">
+        <thead>
+            <tr class="success">
+                <th>Player</th>
+                <th>Server</th>
+                <th>Login Date</th>
+                <th>Logout Date</th>
+                <th>Login Hour</th>
+                <th>Logout Hour</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% if player_data != None %}
+                {% for i in player_data %}
+                    <tr>
+                        <td>{{ i.username }}</td>
+                        <td>{{ i.server }}</td>
+                        <td>{{ i.login.date() }}</td>
+                        <td>{{ i.login.date() }}</td>
+                        <td>{{ i.login.hour }}:{{ i.login.minute }}</td>
+                        <td>{{ i.logout.hour }}:{{ i.logout.minute }}</td>
+                    </tr>
+                {% endfor %}
+            {% endif %}
+        </tbody>
+    </table>
+</div>
 
 {% endblock %}
