@@ -1,0 +1,38 @@
+{% extends "header.html" %}
+
+{% block body %}
+
+<div class="row">
+  <div class="dropdown col-xs-4 col-sm-2 col-md-1">
+    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownPlayerMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+      {% if player_selected == None %}
+        Player
+      {% else %}
+        {{ player_selected }}
+      {% endif %}
+      <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownPlayerMenu">
+      <li><a href="/player_log/All Players">All Players</a></li>
+      {% for player in player_list %}
+        <li><a href="/player_log/{{ player }}">{{ player }}</a> </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="dropdown col-xs-4 col-sm-2 col-md-1">
+    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownServerMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+      Server
+      <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownServerMenu">
+      {% for server in server_list %}
+        <li><a href="#">{{ server }}</a> </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+{% block logbody %}{% endblock %}
+
+{% endblock %}
