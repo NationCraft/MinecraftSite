@@ -2,9 +2,29 @@
 
 {% block body %}
 
-<div class="row">
-    <div class="dropdown col-xs-4 col-sm-2 col-md-1">
-        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownPlayerMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+<div>
+    <div class="btn-group">
+        <button class="btn btn-default dropdown-toggle" style="margin-right:10px;" type="button" id="dropdownTzMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            {% if timezone_selected == None %}
+                Timezone
+            {% else %}
+                {{ timezone_selected }}
+            {% endif %}
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownTzMenu">
+            <li><a href="/player_log/UTC">UTC</a></li>
+            <li><a href="/player_log/PST">Pacific Standard</a></li>
+            <li><a href="/player_log/PDT">Pacific Daylight Savings</a></li>
+            <li><a href="/player_log/CST">Central Standard</a></li>
+            <li><a href="/player_log/CDT">Central Daylight Savings</a></li>
+            <li><a href="/player_log/EST">Eastern Standard</a></li>
+            <li><a href="/player_log/EDT">Eastern Daylight Savings</a></li>
+        </ul>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn btn-default dropdown-toggle" style="margin-right:10px;" {% if timezone_selected == None %}disabled="disabled"{% endif %} type="button" id="dropdownPlayerMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
             {% if player_selected == None %}
                 Player
             {% else %}
@@ -13,15 +33,15 @@
             <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" aria-labelledby="dropdownPlayerMenu">
-            <li><a href="/player_log/AllPlayers">All Players</a></li>
+            <li><a href="/player_log/{{ timezone_selected }}/AllPlayers">All Players</a></li>
                 {% for player in player_list %}
-                <li><a href="/player_log/{{ player }}">{{ player }}</a> </li>
+                <li><a href="/player_log/{{ timezone_selected }}/{{ player }}">{{ player }}</a> </li>
                 {% endfor %}
         </ul>
     </div>
 
-    <div class="dropdown col-xs-4 col-sm-2 col-md-1">
-        <button class="btn btn-default dropdown-toggle" {% if player_selected == None %}disabled="disabled"{% endif %} type="button" id="dropdownServerMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    <div class="btn-group">
+        <button class="btn btn-default dropdown-toggle" style="margin-right:10px;" {% if player_selected == None %}disabled="disabled"{% endif %} type="button" id="dropdownServerMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
             {% if server_selected == None %}
                 Server
             {% else %}
@@ -30,9 +50,9 @@
             <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" aria-labelledby="dropdownServerMenu">
-            <li><a href="/player_log/{{ player_selected }}/AllServers">All Servers</a></li>
+            <li><a href="/player_log/{{ timezone_selected }}/{{ player_selected }}/AllServers">All Servers</a></li>
             {% for server in server_list %}
-                <li><a href="/player_log/{{ player_selected }}/{{ server }}">{{ server }}</a> </li>
+                <li><a href="/player_log/{{ timezone_selected }}/{{ player_selected }}/{{ server }}">{{ server }}</a> </li>
             {% endfor %}
         </ul>
     </div>

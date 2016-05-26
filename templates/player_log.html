@@ -12,23 +12,22 @@
             <tr class="success">
                 <th>Player</th>
                 <th>Server</th>
-                <th>Login Date</th>
-                <th>Logout Date</th>
-                <th>Login Hour</th>
-                <th>Logout Hour</th>
+                <th>Login</th>
+                <th>Logout</th>
+                <th>Session length</th>
             </tr>
         </thead>
 
         <tbody>
             {% if player_data != None %}
                 {% for i in player_data %}
+                    {% set session = i.logout - i.login %}
                     <tr>
                         <td>{{ i.username }}</td>
                         <td>{{ i.server }}</td>
-                        <td>{{ i.login.date() }}</td>
-                        <td>{{ i.login.date() }}</td>
-                        <td>{{ i.login.hour }}:{{ i.login.minute }}</td>
-                        <td>{{ i.logout.hour }}:{{ i.logout.minute }}</td>
+                        <td>{{ i.login.date() }}&nbsp;&nbsp;&nbsp;{{ i.login.hour }}:{{ i.login.minute }}</td>
+                        <td>{{ i.logout.date() }}&nbsp;&nbsp;&nbsp;{{ i.logout.hour }}:{{ i.logout.minute }}</td>
+                        <td>{{ i.session }}</td>
                     </tr>
                 {% endfor %}
             {% endif %}

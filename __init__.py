@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request
 import minecraftstats as mc
 from pymongo import MongoClient
+from datetime import datetime, timedelta, tzinfo
+import timeconverter
 
 app = Flask(__name__)
 
@@ -21,25 +23,23 @@ def main():
 
 
 @app.route('/player_log/')
-@app.route('/player_log/<playername>')
-@app.route('/player_log/<playername>/<servername>')
-def player_log(playername=None, servername=None):
-    # col_data = player_log.get_mongo_collection('localhost', 27017, 'minecraft_logger', 'session_log')
+@app.route('/player_log/<timezone>')
+@app.route('/player_log/<timezone>/<playername>')
+@app.route('/player_log/<timezone>/<playername>/<servername>')
+def player_log(timezone=None, playername=None, servername=None):
     player_list, server_list = get_player_server_list(get_mongo_collection(get_mongo_client()))
-    player_selected = playername
-    server_selected = servername
     player_data = None
-
     if playername is not None and servername is not None:
         print("running player log")
-        player_data = get_player_log(playername, servername)
+        player_data = get_player_log(timezone, playername, servername)
 
     return render_template('player_log.html',
                            player_list=player_list,
                            server_list=server_list,
-                           player_selected=player_selected,
-                           server_selected=server_selected,
-                           player_data=player_data)
+                           player_selected=playername,
+                           server_selected=servername,
+                           player_data=player_data,
+                           timezone_selected=timezone)
 
 
 # get_player_log functions *******************************************************
@@ -54,19 +54,70 @@ def get_mongo_collection(mongo_client):
     return data_log
 
 
-def get_mongo_all_servers(mongo_client, player):
-    print('all servers', player)
-    return mongo_client.find({'username': player})
+def get_mongo_all(mongo_client, timezone):
+    return_log = []
+    print('all')
+    for p in mongo_client.find():
+        return_log.append(p)
+        print(timezone)
+        if timezone != 'utc':
+            print(timezone)
+            pst = timeconverter.PST
+            print(type(return_log[len(return_log) - 1]['logout']))
+            login = timeconverter.utc_to_local(return_log[len(return_log) - 1]['login'], timezone)
+            logout = timeconverter.utc_to_local(return_log[len(return_log) - 1]['logout'], timezone)
+            print(_login, _logout)
+            return_log[len(return_log - 1)]['login'] = login
+            return_log[len(return_log - 1)]['logout'] = logout
+
+        s = str(return_log[len(return_log) - 1]['logout'] - return_log[len(return_log) - 1]['login'])
+        return_log[len(return_log) - 1]['session'] = s[:-7]
+    return return_log
 
 
-def get_mongo_all_players(mongo_client, server):
-    print('all players', server)
-    return mongo_client.find({'server': server})
+def get_mongo_all_servers(mongo_client, timezone, player):
+    return_log = []
+    for p in mongo_client.find({'username': player}):
+        return_log.append(p)
+        if timezone != 'utc':
+            _login = timeconverter.utc_to_local(return_log[len(return_log - 1)]['login'], timezone)
+            _logout = timeconverter.utc_to_local(return_log[len(return_log - 1)]['logout'], timezone)
+            return_log[len(return_log - 1)]['login'] = _login
+            return_log[len(return_log - 1)]['logout'] = _logout
+
+        s = str(return_log[len(return_log) - 1]['logout'] - return_log[len(return_log) - 1]['login'])
+        return_log[len(return_log) - 1]['session'] = s[:-7]
+    return return_log
 
 
-def get_mongo_all_args(mongo_client, player, server):
-    print('all args', player, server)
-    return mongo_client.find({'username': player, 'server': server})
+def get_mongo_all_players(mongo_client, timezone, server):
+    return_log = []
+    for p in mongo_client.find({'server': server}):
+        return_log.append(p)
+        if timezone != 'utc':
+            _login = timeconverter.utc_to_local(return_log[len(return_log - 1)]['login'], timezone)
+            _logout = timeconverter.utc_to_local(return_log[len(return_log - 1)]['logout'], timezone)
+            return_log[len(return_log - 1)]['login'] = _login
+            return_log[len(return_log - 1)]['logout'] = _logout
+
+        s = str(return_log[len(return_log) - 1]['logout'] - return_log[len(return_log) - 1]['login'])
+        return_log[len(return_log) - 1]['session'] = s[:-7]
+    return return_log
+
+
+def get_mongo_all_args(mongo_client, timezone, player, server):
+    return_log = []
+    for p in mongo_client.find({'username': player, 'server': server}):
+        return_log.append(p)
+        if timezone != 'utc':
+            _login = timeconverter.utc_to_local(return_log[len(return_log - 1)]['login'], timezone)
+            _logout = timeconverter.utc_to_local(return_log[len(return_log - 1)]['logout'], timezone)
+            return_log[len(return_log - 1)]['login'] = _login
+            return_log[len(return_log - 1)]['logout'] = _logout
+
+        s = str(return_log[len(return_log) - 1]['logout'] - return_log[len(return_log) - 1]['login'])
+        return_log[len(return_log) - 1]['session'] = s[:-7]
+    return return_log
 
 
 # returns list[[][]]
@@ -85,18 +136,18 @@ def get_player_server_list(col_data):
     return player_list, server_list
 
 
-def get_player_log(playername, servername):
+def get_player_log(timezone, playername, servername):
     if playername == "AllPlayers":
         if servername == 'AllServers':
-            return get_mongo_collection(get_mongo_client())
+            return get_mongo_all(get_mongo_client(), timezone)
         else:
-            return get_mongo_all_players(get_mongo_client(), servername)
+            return get_mongo_all_players(get_mongo_client(), timezone, servername)
     else:
         if servername == 'AllServers':
-            return get_mongo_all_servers(get_mongo_client(), playername)
+            return get_mongo_all_servers(get_mongo_client(), timezone, playername)
         else:
-            return get_mongo_all_args(get_mongo_client(), playername, servername)
+            return get_mongo_all_args(get_mongo_client(), timezone, playername, servername)
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
