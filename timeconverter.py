@@ -8,11 +8,21 @@ def local_to_utc(date_input):
 
 
 def utc_to_local(date_input, timezone_output):
-    print(date_input, timezone_output)
-
+    if timezone_output == 'PST':
+        tz_output = PST
+    elif timezone_output == 'PDT':
+        tz_output = PDT
+    elif timezone_output == 'CST':
+        tz_output = CST
+    elif timezone_output == 'CDT':
+        tz_output = CDT
+    elif timezone_output == 'EST':
+        tz_output = EST
+    elif timezone_output == 'EDT':
+        tz_output = EDT
     try:
-        tzoffset = timezone_output.utcoffset()
-        date = (date_input + tzoffset).replace(tzinfo=timezone_output)
+        tzoffset = tz_output.utcoffset(tz_output)
+        date = (date_input + tzoffset)
         return date
     except Exception as e:
         print(e)

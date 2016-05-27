@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request
 import minecraftstats as mc
 from pymongo import MongoClient
-from datetime import datetime, timedelta, tzinfo
 import timeconverter
 
 app = Flask(__name__)
@@ -10,16 +9,41 @@ app = Flask(__name__)
 @app.route('/')
 def main():
     try:
-        beta_status = mc.get_status('connect.bonecrack.com', 25565)
-        beta_player_list = mc.get_player_list('connect.bonecrack.com', 25565)
+        beta_status = mc.get_status('beta.nationmc.net', 25565).players.online
+        beta_player_list = mc.get_player_list('beta.nationmc.net', 25565)
         beta_server_online = True
     except Exception:
+        beta_status = 0
+        beta_player_list = []
         beta_server_online = False
 
+    try:
+        play_status = mc.get_status('play.nationmc.net', 25565).players.online
+        play_player_list = mc.get_player_list('play.nationmc.net', 25565)
+        play_server_online = True
+    except Exception:
+        play_status = 0
+        play_player_list = []
+        play_server_online = False
+    try:
+        dev_status = mc.get_status('dev.nationmc.net', 25565).players.online
+        dev_player_list = mc.get_player_list('dev.nationmc.net', 25565)
+        dev_server_online = True
+    except Exception:
+        dev_status = 0
+        dev_player_list = []
+        dev_server_online = False
+
     return render_template('main.html',
-                           beta_users_connected=beta_status.players.online,
+                           beta_users_connected=beta_status,
                            beta_player_list=beta_player_list,
-                           beta_server_online=beta_server_online)
+                           beta_server_online=beta_server_online,
+                           play_users_connected=play_status,
+                           play_player_list=play_player_list,
+                           play_server_online=play_server_online,
+                           dev_users_connected=dev_status,
+                           dev_player_list=dev_player_list,
+                           dev_server_online=dev_server_online)
 
 
 @app.route('/player_log/')
@@ -49,80 +73,78 @@ def get_mongo_client():
     return db.session_log
 
 
+# get all data from collection unmodified
 def get_mongo_collection(mongo_client):
     data_log = mongo_client.find()
     return data_log
 
 
+# get all data modified timezone and added session length
 def get_mongo_all(mongo_client, timezone):
     return_log = []
-    print('all')
     for p in mongo_client.find():
         return_log.append(p)
-        print(timezone)
-        if timezone != 'utc':
-            print(timezone)
-            pst = timeconverter.PST
-            print(type(return_log[len(return_log) - 1]['logout']))
-            login = timeconverter.utc_to_local(return_log[len(return_log) - 1]['login'], timezone)
-            logout = timeconverter.utc_to_local(return_log[len(return_log) - 1]['logout'], timezone)
-            print(_login, _logout)
-            return_log[len(return_log - 1)]['login'] = login
-            return_log[len(return_log - 1)]['logout'] = logout
+        if timezone != 'UTC':
+            return_log[len(return_log) - 1]['login'] = timeconverter.utc_to_local(
+                return_log[len(return_log) - 1]['login'], timezone)
+            return_log[len(return_log) - 1]['logout'] = timeconverter.utc_to_local(
+                return_log[len(return_log) - 1]['logout'], timezone)
 
         s = str(return_log[len(return_log) - 1]['logout'] - return_log[len(return_log) - 1]['login'])
         return_log[len(return_log) - 1]['session'] = s[:-7]
     return return_log
 
 
+# get all servers modified timezone and added session length
 def get_mongo_all_servers(mongo_client, timezone, player):
     return_log = []
     for p in mongo_client.find({'username': player}):
         return_log.append(p)
-        if timezone != 'utc':
-            _login = timeconverter.utc_to_local(return_log[len(return_log - 1)]['login'], timezone)
-            _logout = timeconverter.utc_to_local(return_log[len(return_log - 1)]['logout'], timezone)
-            return_log[len(return_log - 1)]['login'] = _login
-            return_log[len(return_log - 1)]['logout'] = _logout
+        if timezone != 'UTC':
+            return_log[len(return_log) - 1]['login'] = timeconverter.utc_to_local(
+                return_log[len(return_log) - 1]['login'], timezone)
+            return_log[len(return_log) - 1]['logout'] = timeconverter.utc_to_local(
+                return_log[len(return_log) - 1]['logout'], timezone)
 
         s = str(return_log[len(return_log) - 1]['logout'] - return_log[len(return_log) - 1]['login'])
         return_log[len(return_log) - 1]['session'] = s[:-7]
     return return_log
 
 
+# get all players with server var modified timezone and added session length
 def get_mongo_all_players(mongo_client, timezone, server):
     return_log = []
     for p in mongo_client.find({'server': server}):
         return_log.append(p)
-        if timezone != 'utc':
-            _login = timeconverter.utc_to_local(return_log[len(return_log - 1)]['login'], timezone)
-            _logout = timeconverter.utc_to_local(return_log[len(return_log - 1)]['logout'], timezone)
-            return_log[len(return_log - 1)]['login'] = _login
-            return_log[len(return_log - 1)]['logout'] = _logout
+        if timezone != 'UTC':
+            return_log[len(return_log) - 1]['login'] = timeconverter.utc_to_local(
+                return_log[len(return_log) - 1]['login'], timezone)
+            return_log[len(return_log) - 1]['logout'] = timeconverter.utc_to_local(
+                return_log[len(return_log) - 1]['logout'], timezone)
 
         s = str(return_log[len(return_log) - 1]['logout'] - return_log[len(return_log) - 1]['login'])
         return_log[len(return_log) - 1]['session'] = s[:-7]
     return return_log
 
 
+# get player var and server var modified timezone and added session length
 def get_mongo_all_args(mongo_client, timezone, player, server):
     return_log = []
     for p in mongo_client.find({'username': player, 'server': server}):
         return_log.append(p)
-        if timezone != 'utc':
-            _login = timeconverter.utc_to_local(return_log[len(return_log - 1)]['login'], timezone)
-            _logout = timeconverter.utc_to_local(return_log[len(return_log - 1)]['logout'], timezone)
-            return_log[len(return_log - 1)]['login'] = _login
-            return_log[len(return_log - 1)]['logout'] = _logout
+        if timezone != 'UTC':
+            return_log[len(return_log) - 1]['login'] = timeconverter.utc_to_local(
+                return_log[len(return_log) - 1]['login'], timezone)
+            return_log[len(return_log) - 1]['logout'] = timeconverter.utc_to_local(
+                return_log[len(return_log) - 1]['logout'], timezone)
 
         s = str(return_log[len(return_log) - 1]['logout'] - return_log[len(return_log) - 1]['login'])
         return_log[len(return_log) - 1]['session'] = s[:-7]
     return return_log
 
 
-# returns list[[][]]
+# returns player_list and server_list
 def get_player_server_list(col_data):
-    # col_data = get_mongo_collection(host='localhost', port=27017, db='minecraft_logger', collection='session_log')
     player_list = []
     server_list = []
     # multi_list = []
@@ -131,11 +153,10 @@ def get_player_server_list(col_data):
             player_list.append(i['username'])
         if not i['server'] in server_list:
             server_list.append(i['server'])
-    # multi_list.append(player_list)
-    # multi_list.append(server_list)
     return player_list, server_list
 
 
+# runs correct functions to get log from db
 def get_player_log(timezone, playername, servername):
     if playername == "AllPlayers":
         if servername == 'AllServers':
