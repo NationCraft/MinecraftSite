@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request
-from . import minecraftstats as mc
+import minecraftstats as mc
 from pymongo import MongoClient
-from . import timeconverter
+import timeconverter
 
 app = Flask(__name__)
 

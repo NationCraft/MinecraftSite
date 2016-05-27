@@ -25,8 +25,8 @@
                     <tr>
                         <td>{{ i.username }}</td>
                         <td>{{ i.server }}</td>
-                        <td>{{ i.login.date() }}&nbsp;&nbsp;&nbsp;{{ i.login.hour }}:{{ i.login.minute }}</td>
-                        <td>{{ i.logout.date() }}&nbsp;&nbsp;&nbsp;{{ i.logout.hour }}:{{ i.logout.minute }}</td>
+                        <td>{{ i.login.strftime('%Y-%m-%d  %H:%M') }}</td>
+                        <td>{{ i.logout.strftime('%Y-%m-%d  %H:%M') }}</td>
                         <td>{{ i.session }}</td>
                     </tr>
                 {% endfor %}
