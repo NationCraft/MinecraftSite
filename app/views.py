@@ -35,9 +35,8 @@ def player_log(timezone=None, playername=None, servername=None):
     try:
         player_list, server_list = get_player_server_list()
     except Exception as e:
-        print('exeption 1', e)
+        print(e)
     if playername is not None and servername is not None:
-        print("running player log")
         player_data = get_player_log(timezone, playername, servername)
 
     return render_template('player_log.html',
