@@ -1,6 +1,6 @@
 from app import app
 from app.controllers import minecraftstats as mc
-from app.controllers import player_log
+from app.controllers.player_log import get_player_server_list, get_player_log
 from flask import render_template
 
 
@@ -31,10 +31,14 @@ def player_log(timezone=None, playername=None, servername=None):
     player_list = []
     server_list = []
     player_data = None
-    player_list, server_list = player_log.get_player_server_list()
+
+    try:
+        player_list, server_list = get_player_server_list()
+    except Exception as e:
+        print('exeption 1', e)
     if playername is not None and servername is not None:
         print("running player log")
-        player_data = player_log.get_player_log(timezone, playername, servername)
+        player_data = get_player_log(timezone, playername, servername)
 
     return render_template('player_log.html',
                            player_list=player_list,

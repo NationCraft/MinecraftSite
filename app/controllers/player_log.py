@@ -4,8 +4,9 @@ from app.controllers import timeconverter
 
 def get_mongo_client():
     client = MongoClient('localhost', 27017)
-    db = client.minecraft_logger
-    return db.session_log
+    db = client['minecraft_logger']
+    col = db['session_log']
+    return col
 
 
 # get all data from collection unmodified
@@ -14,18 +15,42 @@ def get_mongo_collection(mongo_client):
     return data_log
 
 
-# returns player_list and server_list
-def get_player_server_list():
-    mongo_client = MongoClient('localhost', 27017)
-    col_data = mongo_client.find()
+def get_player_list() -> list:
+    mongo_client = get_mongo_client()
     player_list = []
-    server_list = []
-    # multi_list = []
-    for i in col_data:
+
+    for i in mongo_client.find():
         if not i['username'] in player_list:
             player_list.append(i['username'])
+    print(player_list)
+    return player_list
+
+
+def get_server_list():
+    mongo_client = get_mongo_client()
+    server_list = []
+
+    for i in mongo_client.find():
         if not i['server'] in server_list:
             server_list.append(i['server'])
+    return server_list
+
+
+# returns player_list and server_list
+def get_player_server_list():
+    player_list = []
+    server_list = []
+    try:
+        mongo_client = get_mongo_client()
+        # multi_list = []
+        for i in mongo_client.find():
+            if not i['username'] in player_list:
+                player_list.append(i['username'])
+            if not i['server'] in server_list:
+                server_list.append(i['server'])
+    except Exception as e:
+        print('exeption', e)
+    print(player_list, server_list)
     return player_list, server_list
 
 
