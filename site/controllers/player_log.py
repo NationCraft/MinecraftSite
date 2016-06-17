@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from app.controllers import timeconverter
+from minecraft_site.site.controllers import timeconverter
 
 
 def get_mongo_client():

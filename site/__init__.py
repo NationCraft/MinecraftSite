@@ -1,6 +1,7 @@
-from app import app
-from app.controllers import minecraftstats as mc
-from app.controllers.player_log import get_player_server_list, get_player_log
+from flask import Flask
+app = Flask(__name__)
+from minecraft_site.site.controllers import minecraftstats as mc
+from minecraft_site.site.controllers.player_log import get_player_server_list, get_player_log
 from flask import render_template
 
 
